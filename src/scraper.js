@@ -1,23 +1,20 @@
-// Import puppeteer
+// src/scraper.js
 import puppeteer from 'puppeteer';
 import { writeRowToSheet } from './sheets.js';
 
 export async function scraper(url) {
   console.log("RUNNING SCRAPER...")
   console.log(`URL: ${url}`)
+
   // Launch the browser
   const browser = await puppeteer.launch({ headless: "new" });
-
-  // Create a page
   const page = await browser.newPage();
-
-  // Go to your site
   await page.goto(url);
 
   // Wait for the elements to be loaded
   await page.waitForSelector('.UvhDdd');
 
-  // Extract information from all elements with the class 'UvhDdd'
+  // Extract information from all elements with specified class
   const elementsData = await page.$$eval('.UvhDdd', elements => {
     return elements.map(element => {
         return {
@@ -26,7 +23,6 @@ export async function scraper(url) {
     });
   });
 
-  const data = []
   const totalElements = elementsData.length;
 
   for (let i = 0; i < totalElements; i++) {
@@ -67,27 +63,8 @@ export async function scraper(url) {
         numberOfUsers: numberOfUsers,
         error: ''
       })
-      // data.push({
-      //   searchUrl: url,
-      //   storeUrl: el.href,
-      //   extensionUrl: extensionUrlHref,
-      //   extensionRating: extensionRating,
-      //   numRatings: numRatings,
-      //   numberOfUsers: numberOfUsers,
-      //   error: ''
-      // });
     } catch (error) {
       console.error('Error loading extension URL:', error.message);
-      // data.push({
-      //   searchUrl: url,
-      //   storeUrl: el.href,
-      //   extensionUrl: '',
-      //   extensionRating: '',
-      //   numRatings: '',
-      //   numberOfUsers: '',
-      //   error: error.message
-      // });
-
       await writeRowToSheet({
         searchUrl: url,
         storeUrl: el.href,
@@ -97,11 +74,8 @@ export async function scraper(url) {
         numberOfUsers: '',
         error: error.message
       })
-      // You can choose to continue processing other elements or handle this error as needed
     }
   }
-
-  // await writeToSheet(data)
 
   // Close browser.
   await browser.close();

@@ -1,5 +1,7 @@
+// src/sheets.js
 import { google } from 'googleapis'
 import credentials from '../credentials/hookscraper.json' assert { type: 'json' };
+import { GOOGLE_SHEET_ID } from './config.js';
 
 // Set up the JWT client
 const client = new google.auth.JWT(
@@ -9,7 +11,7 @@ const client = new google.auth.JWT(
   ['https://www.googleapis.com/auth/spreadsheets']
 );
 
-const spreadsheetId = '1oufbJ_z-3eXgcZQ8ypmYuQfNmqlDcJQMjIVXhp8-ebw';
+const spreadsheetId = GOOGLE_SHEET_ID
 
 export async function writeRowToSheet(row) {
   console.log('---> Writing row data to google sheets')
@@ -25,7 +27,7 @@ export async function writeRowToSheet(row) {
 
     // Create the resource object with the data to be inserted
     const resource = {
-      values: [values], // Wrap values in an array, as it represents a single row
+      values: [values], // Wrap values in an array to represent single row
     };
 
     // Insert the new row into the sheet
@@ -33,7 +35,7 @@ export async function writeRowToSheet(row) {
       spreadsheetId,
       range,
       valueInputOption: 'RAW',
-      insertDataOption: 'INSERT_ROWS', // This option inserts a new row
+      insertDataOption: 'INSERT_ROWS',
       resource,
     });
 
@@ -49,10 +51,10 @@ export async function writeToSheet(data) {
     await client.authorize();
     const sheetsApi = google.sheets({ version: 'v4', auth: client });
 
-    // Determine the last row with data in 'Sheet1'
+    // Determine the last row with data in sheet
     const getLastRowResponse = await sheetsApi.spreadsheets.values.get({
       spreadsheetId,
-      range: 'Sheet1!A:A', // Assuming column A always has data
+      range: 'Sheet1!A:A',
     });
 
     const lastRow = getLastRowResponse.data.values ? getLastRowResponse.data.values.length + 1 : 1;

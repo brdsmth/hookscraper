@@ -1,11 +1,5 @@
 // src/index.js
-
 import { scraper } from "./scraper.js";
-
-
-// https://chromewebstore.google.com/category/extensions/productivity/tools
-// https://chromewebstore.google.com/category/extensions/productivity/education
-
 
 const urls = [
   'https://chromewebstore.google.com/category/extensions/productivity/tools',
