@@ -1,10 +1,11 @@
 // src/sheets.js
 import { google } from 'googleapis'
+
 import credentials from '../credentials/hookscraper.json' assert { type: 'json' };
 import { GOOGLE_SHEET_ID } from './config.js';
 
 // Set up the JWT client
-const client = new google.auth.JWT(
+export const client = new google.auth.JWT(
   credentials.client_email,
   null,
   credentials.private_key,
@@ -13,7 +14,7 @@ const client = new google.auth.JWT(
 
 const spreadsheetId = GOOGLE_SHEET_ID
 
-export async function writeRowToSheet(row) {
+export async function writeRowToSheet(row, sheetName) {
   console.log('---> Writing row data to google sheets')
   try {
     await client.authorize();
@@ -22,8 +23,8 @@ export async function writeRowToSheet(row) {
     // Prepare the data for writing to the sheet
     const values = Object.values(row)
 
-    // Specify the range where you want to insert the new row (e.g., 'Sheet1')
-    const range = 'Sheet1';
+    // Specify the range where you want to insert the new row (e.g., 'Sheet1!A:A')
+    const range = `${sheetName}!A:A`;
 
     // Create the resource object with the data to be inserted
     const resource = {
@@ -42,6 +43,45 @@ export async function writeRowToSheet(row) {
     console.log('Data successfully inserted into Google Sheets.');
   } catch (error) {
     console.error('Error inserting data into Google Sheets:', error);
+  }
+}
+
+export async function checkSheetExists(sheetsApi, sheetName) {
+  try {
+    const response = await sheetsApi.spreadsheets.get({
+      spreadsheetId,
+      fields: 'sheets(properties(title))',
+    });
+
+    const sheets = response.data.sheets;
+    const existingSheet = sheets.find(sheet => sheet.properties.title === sheetName);
+
+    return existingSheet ? true : false;
+  } catch (error) {
+    console.error('Error checking if sheet exists:', error);
+    return false;
+  }
+}
+
+export async function createSheet(sheetsApi, sheetName) {
+  try {
+    await sheetsApi.spreadsheets.batchUpdate({
+      spreadsheetId,
+      resource: {
+        requests: [
+          {
+            addSheet: {
+              properties: {
+                title: sheetName,
+              },
+            },
+          },
+        ],
+      },
+    });
+    console.log(`Sheet "${sheetName}" created successfully.`);
+  } catch (error) {
+    console.error('Error creating sheet:', error);
   }
 }
 
